@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --admin-bg: #f2f4f7;
+  --admin-ink: #111827;
+  --admin-muted: #667085;
+  --admin-panel: rgba(255, 255, 255, 0.9);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background:
+    radial-gradient(circle at 95% 8%, #e8f6ff 0%, transparent 28%),
+    radial-gradient(circle at 8% 88%, #fff0dc 0%, transparent 30%),
+    linear-gradient(165deg, #f8fafc 0%, var(--admin-bg) 100%);
+  color: var(--admin-ink);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+button {
+  transition: transform 0.18s ease, box-shadow 0.22s ease, background-color 0.22s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+input,
+textarea,
+select {
+  border-radius: 12px;
+}
