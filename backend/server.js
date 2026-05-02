@@ -67,6 +67,41 @@ app.get('/', (req, res) => {
   res.json({ message: 'Backend running' });
 });
 
+// Debug route: returns request info and environment checks
+app.get('/_debug', (req, res) => {
+  const routes = [];
+  try {
+    app._router.stack.forEach((middleware) => {
+      if (middleware.route) {
+        // routes registered directly on the app
+        const methods = Object.keys(middleware.route.methods).join(',').toUpperCase();
+        routes.push({ path: middleware.route.path, methods });
+      } else if (middleware.name === 'router' && middleware.handle.stack) {
+        // router middleware
+        middleware.handle.stack.forEach((handler) => {
+          if (handler.route) {
+            const methods = Object.keys(handler.route.methods).join(',').toUpperCase();
+            routes.push({ path: handler.route.path, methods });
+          }
+        });
+      }
+    });
+  } catch (e) {
+    // ignore introspection errors
+  }
+
+  res.json({
+    message: 'Debug info',
+    path: req.originalUrl,
+    method: req.method,
+    env: {
+      hasMongoUri: !!process.env.MONGODB_URI,
+      nodeEnv: process.env.NODE_ENV || null
+    },
+    routes
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -76,9 +111,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler (include request path for easier debugging)
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: 'Route not found', path: req.originalUrl });
 });
 
 const DEFAULT_PORT = Number(process.env.PORT) || 5000;
