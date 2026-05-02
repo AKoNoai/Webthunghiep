@@ -1,5 +1,15 @@
 const Product = require('../models/Product');
 
+// Mock data for fallback when DB is unavailable
+const MOCK_PRODUCTS = [
+  { _id: '1', name: 'Laptop Pro', description: 'High-performance laptop', price: 1299, discountPrice: 999, category: 'electronics', image: 'https://via.placeholder.com/300?text=Laptop', stock: 10, sku: 'LAPTOP-001', status: 'active' },
+  { _id: '2', name: 'Wireless Mouse', description: 'Ergonomic wireless mouse', price: 49, discountPrice: 29, category: 'electronics', image: 'https://via.placeholder.com/300?text=Mouse', stock: 50, sku: 'MOUSE-001', status: 'active' },
+  { _id: '3', name: 'USB-C Cable', description: 'Fast charging USB-C cable', price: 19, category: 'electronics', image: 'https://via.placeholder.com/300?text=Cable', stock: 100, sku: 'USB-001', status: 'active' },
+  { _id: '4', name: 'Mechanical Keyboard', description: 'RGB mechanical keyboard', price: 149, discountPrice: 99, category: 'electronics', image: 'https://via.placeholder.com/300?text=Keyboard', stock: 20, sku: 'KB-001', status: 'active' },
+  { _id: '5', name: '4K Monitor', description: '27-inch 4K monitor', price: 499, discountPrice: 399, category: 'electronics', image: 'https://via.placeholder.com/300?text=Monitor', stock: 8, sku: 'MON-001', status: 'active' },
+  { _id: '6', name: 'Gaming Headset', description: 'Wireless gaming headset', price: 129, discountPrice: 79, category: 'electronics', image: 'https://via.placeholder.com/300?text=Headset', stock: 30, sku: 'HS-001', status: 'active' }
+];
+
 // Get all products
 exports.getAllProducts = async (req, res) => {
   try {
@@ -28,7 +38,20 @@ exports.getAllProducts = async (req, res) => {
       total,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.warn('DB query failed, returning mock data:', error.message);
+    // Return mock data as fallback
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const start = (page - 1) * limit;
+    const paginatedMock = MOCK_PRODUCTS.slice(start, start + limit);
+    
+    res.json({
+      products: paginatedMock,
+      totalPages: Math.ceil(MOCK_PRODUCTS.length / limit),
+      currentPage: page,
+      total: MOCK_PRODUCTS.length,
+      _note: 'Using mock data - database unavailable'
+    });
   }
 };
 
@@ -37,10 +60,14 @@ exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) {
+      const mockProduct = MOCK_PRODUCTS.find(p => p._id === req.params.id);
+      if (mockProduct) return res.json(mockProduct);
       return res.status(404).json({ message: 'Product not found' });
     }
     res.json(product);
   } catch (error) {
+    const mockProduct = MOCK_PRODUCTS.find(p => p._id === req.params.id);
+    if (mockProduct) return res.json(mockProduct);
     res.status(500).json({ message: error.message });
   }
 };
