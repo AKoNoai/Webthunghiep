@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
 const User = require('./models/User');
@@ -58,8 +57,8 @@ const ensureDefaultAdmin = async () => {
 };
 
 // Middleware
-const corsOptions = {
-  origin: [
+app.use((req, res, next) => {
+  const allowedOrigins = [
     'https://webthunghiep.vercel.app',        // Frontend
     'https://webthunghiepadmin.vercel.app',   // Admin
     'http://localhost:5173',                  // Local frontend dev
@@ -68,14 +67,26 @@ const corsOptions = {
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
     'http://127.0.0.1:3000'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
-};
+  ];
+  
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Max-Age', '86400');
+  }
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
-app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
