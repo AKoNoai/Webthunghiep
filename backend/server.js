@@ -58,34 +58,9 @@ const ensureDefaultAdmin = async () => {
 };
 
 // Middleware
-// CORS configuration
+// CORS configuration - simplified for token-based auth (no cookies needed)
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    const allowedOrigins = [
-      'https://webthunghiep.vercel.app',
-      'https://webthunghiepadmin.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      'http://127.0.0.1:3000'
-    ];
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      // For development/testing: allow any origin
-      callback(null, true);
-    }
-  },
-  credentials: true,
+  origin: true,  // Echo back the origin
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
