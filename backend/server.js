@@ -14,44 +14,87 @@ dotenv.config();
 
 const app = express();
 
+let dbInitialized = false;
+let dbInitError = null;
+
 const ensureDefaultAdmin = async () => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  if (!dbInitialized) return; // Skip if DB not initialized
+  
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
-  const existingAdmin = await User.findOne({ email: adminEmail });
+    const existingAdmin = await User.findOne({ email: adminEmail });
 
-  if (existingAdmin) {
-    if (existingAdmin.role !== 'admin') {
-      existingAdmin.role = 'admin';
+    if (existingAdmin) {
+      if (existingAdmin.role !== 'admin') {
+        existingAdmin.role = 'admin';
+      }
+
+      if (existingAdmin.fullName !== 'Admin') {
+        existingAdmin.fullName = 'Admin';
+      }
+
+      existingAdmin.phone = existingAdmin.phone || '0000000000';
+      existingAdmin.password = adminPassword;
+      await existingAdmin.save();
+      console.log(`Default admin updated: ${adminEmail}`);
+      return;
     }
 
-    if (existingAdmin.fullName !== 'Admin') {
-      existingAdmin.fullName = 'Admin';
-    }
+    await User.create({
+      fullName: 'Admin',
+      email: adminEmail,
+      phone: '0000000000',
+      password: adminPassword,
+      role: 'admin',
+      status: 'active',
+    });
 
-    existingAdmin.phone = existingAdmin.phone || '0000000000';
-    existingAdmin.password = adminPassword;
-    await existingAdmin.save();
-    console.log(`Default admin updated: ${adminEmail}`);
-    return;
+    console.log(`Default admin created: ${adminEmail}`);
+  } catch (err) {
+    console.error('Failed to ensure default admin:', err.message);
   }
-
-  await User.create({
-    fullName: 'Admin',
-    email: adminEmail,
-    phone: '0000000000',
-    password: adminPassword,
-    role: 'admin',
-    status: 'active',
-  });
-
-  console.log(`Default admin created: ${adminEmail}`);
 };
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// DB health check middleware: return 503 if DB not ready (skip for health/root endpoints)
+app.use((req, res, next) => {
+  if (req.path === '/health' || req.path === '/' || req.path === '/_debug') {
+    return next();
+  }
+  
+  if (dbInitError) {
+    return res.status(503).json({
+      message: 'Service unavailable: Database not connected',
+      details: dbInitError.message
+    });
+  }
+  
+  if (!dbInitialized) {
+    return res.status(503).json({
+      message: 'Service initializing: Please retry in a moment'
+    });
+  }
+  
+  next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const mongooseState = require('mongoose').connection.readyState;
+  const isConnected = mongooseState === 1; // 1 = connected
+  
+  if (isConnected) {
+    res.json({ status: 'healthy', db: 'connected' });
+  } else {
+    res.status(503).json({ status: 'unhealthy', db: 'disconnected', dbState: mongooseState });
+  }
+});
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -154,16 +197,23 @@ if (require.main === module) {
 
 module.exports = app;
 
-// When required by a serverless runtime (Vercel), initialize DB and default admin
-// without starting a listening server. This allows functions to operate and
-// avoids crashing on cold starts due to missing DB connection.
+// When required by a serverless runtime (Vercel), initialize DB once per container
+// and mark as ready for requests. Don't block on admin creation.
 (async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      console.warn('MONGODB_URI not set — API will return 503 until configured');
+      dbInitError = new Error('MongoDB not configured');
+      return;
+    }
+    
     await connectDB();
+    dbInitialized = true;
     await ensureDefaultAdmin();
-    console.log('DB initialized (module import)');
+    console.log('DB initialized successfully (serverless module import)');
   } catch (err) {
-    console.error('DB initialization failed during module import:', err.message || err);
-    // Don't throw here — Vercel will surface errors in function logs per request.
+    dbInitError = err;
+    console.error('DB initialization failed during module import:', err.message);
+    // Continue anyway — Vercel functions will handle this gracefully
   }
 })();
