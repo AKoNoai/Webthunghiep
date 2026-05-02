@@ -62,40 +62,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// DB health check middleware: return 503 if DB not ready (skip for health/root endpoints)
-app.use((req, res, next) => {
-  if (req.path === '/health' || req.path === '/' || req.path === '/_debug') {
-    return next();
-  }
-  
-  if (dbInitError) {
-    return res.status(503).json({
-      message: 'Service unavailable: Database not connected',
-      details: dbInitError.message
-    });
-  }
-  
-  if (!dbInitialized) {
-    return res.status(503).json({
-      message: 'Service initializing: Please retry in a moment'
-    });
-  }
-  
-  next();
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  const mongooseState = require('mongoose').connection.readyState;
-  const isConnected = mongooseState === 1; // 1 = connected
-  
-  if (isConnected) {
-    res.json({ status: 'healthy', db: 'connected' });
-  } else {
-    res.status(503).json({ status: 'unhealthy', db: 'disconnected', dbState: mongooseState });
-  }
-});
-
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
@@ -196,24 +162,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-
-// When required by a serverless runtime (Vercel), initialize DB once per container
-// and mark as ready for requests. Don't block on admin creation.
-(async () => {
-  try {
-    if (!process.env.MONGODB_URI) {
-      console.warn('MONGODB_URI not set — API will return 503 until configured');
-      dbInitError = new Error('MongoDB not configured');
-      return;
-    }
-    
-    await connectDB();
-    dbInitialized = true;
-    await ensureDefaultAdmin();
-    console.log('DB initialized successfully (serverless module import)');
-  } catch (err) {
-    dbInitError = err;
-    console.error('DB initialization failed during module import:', err.message);
-    // Continue anyway — Vercel functions will handle this gracefully
-  }
-})();
