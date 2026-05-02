@@ -18,12 +18,5 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-  },
-  define: {
-    'process.env.VITE_API_URL': JSON.stringify(
-      process.env.NODE_ENV === 'production' 
-        ? '/_/backend/api'
-        : 'http://localhost:5000/api'
-    )
   }
 })

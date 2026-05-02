@@ -2,9 +2,9 @@ import axios from 'axios';
 
 // Determine API URL based on environment
 const getApiUrl = () => {
-  // In production (Vercel), use relative path to backend
+  // In production (Vercel), use backend Vercel URL
   if (window.location.hostname.includes('vercel.app')) {
-    return '/_/backend/api';
+    return 'https://webthunghiepbackend.vercel.app/api';
   }
   // In development, use localhost
   return import.meta.env.VITE_API_URL || 'http://localhost:5000/api';

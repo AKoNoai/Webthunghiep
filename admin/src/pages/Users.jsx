@@ -13,9 +13,10 @@ export default function Users() {
   const loadUsers = async () => {
     try {
       const response = await userService.getAllUsers({ limit: 100 });
-      setUsers(response.data);
+      setUsers(response.data || []);
     } catch (error) {
       console.error('Failed to load users:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
