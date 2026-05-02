@@ -7,20 +7,10 @@ import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Users from './pages/Users';
 import ProtectedRoute from './components/ProtectedRoute';
-import { useEffect } from 'react';
 import useAdminAuthStore from './context/adminAuthStore';
 
 function App() {
-  const { isAuthenticated, getCurrentUser, logout } = useAdminAuthStore();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      getCurrentUser().catch((error) => {
-        console.error('Failed to get current user:', error);
-        logout();
-      });
-    }
-  }, [isAuthenticated, getCurrentUser, logout]);
+  const { isAuthenticated, logout } = useAdminAuthStore();
 
   return (
     <Router>
