@@ -58,37 +58,17 @@ const ensureDefaultAdmin = async () => {
 };
 
 // Middleware
-// CORS configuration - allow specific origins
+// CORS configuration - simplified for testing
 const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'https://webthunghiep.vercel.app',
-      'https://webthunghiepadmin.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      'http://127.0.0.1:3000'
-    ];
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS not allowed'), false);
-    }
-  },
-  credentials: true,
+  origin: '*',  // Allow all origins for now (can restrict later)
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200,
   maxAge: 86400
 };
 
-// Apply CORS with OPTIONS pre-flight cache
-app.options('*', cors(corsOptions));
+// Apply CORS with OPTIONS pre-flight
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
