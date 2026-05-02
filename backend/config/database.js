@@ -14,7 +14,8 @@ const connectDB = async () => {
     if (error.message.includes('querySrv ECONNREFUSED')) {
       console.error('Atlas SRV DNS lookup failed. Verify DNS/network or Atlas Network Access rules.');
     }
-    process.exit(1);
+    // Don't exit the process in serverless environments — throw instead
+    throw error;
   }
 };
 

@@ -62,6 +62,11 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
+// Health check/root route to avoid 404 on project root
+app.get('/', (req, res) => {
+  res.json({ message: 'Backend running' });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -113,3 +118,17 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+// When required by a serverless runtime (Vercel), initialize DB and default admin
+// without starting a listening server. This allows functions to operate and
+// avoids crashing on cold starts due to missing DB connection.
+(async () => {
+  try {
+    await connectDB();
+    await ensureDefaultAdmin();
+    console.log('DB initialized (module import)');
+  } catch (err) {
+    console.error('DB initialization failed during module import:', err.message || err);
+    // Don't throw here — Vercel will surface errors in function logs per request.
+  }
+})();
