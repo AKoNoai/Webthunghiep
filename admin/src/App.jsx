@@ -22,10 +22,8 @@ function App() {
     }
   }, [isAuthenticated, getCurrentUser, logout]);
 
-  const basename = import.meta.env.PROD ? '/admin' : '/';
-
   return (
-    <Router basename={basename}>
+    <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
