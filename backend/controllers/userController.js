@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { CREATED_USERS } = require('./authController');
+const userStore = require('../utils/userStore');
 
 // Mock users for fallback when DB unavailable
 const MOCK_USERS = [
@@ -51,7 +51,7 @@ exports.getAllUsers = async (req, res) => {
     clearTimeout(timeoutId);
 
     // Combine DB users with created users in memory
-    const createdUsersList = Object.values(CREATED_USERS);
+    const createdUsersList = userStore.getAllUsers();
     const allUsers = [...(users || []), ...createdUsersList];
 
     // Cache the result
@@ -61,7 +61,7 @@ exports.getAllUsers = async (req, res) => {
     res.json(allUsers);
   } catch (error) {
     // On DB error, return created users + mock users
-    const createdUsersList = Object.values(CREATED_USERS);
+    const createdUsersList = userStore.getAllUsers();
     const allUsers = [...createdUsersList, ...MOCK_USERS];
     
     usersCache = allUsers;
@@ -85,14 +85,24 @@ exports.getUserById = async (req, res) => {
 
     clearTimeout(timeoutId);
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (user) {
+      return res.json(user);
     }
-    res.json(user);
+    
+    // Try to find in created users store
+    const createdUser = userStore.getUser(req.params.id);
+    if (createdUser) {
+      return res.json(createdUser);
+    }
+
+    res.status(404).json({ message: 'User not found' });
   } catch (error) {
-    // Return mock user on error
-    const mockUser = MOCK_USERS[0];
-    res.json(mockUser);
+    // On error, try userStore
+    const createdUser = userStore.getUser(req.params.id);
+    if (createdUser) {
+      return res.json(createdUser);
+    }
+    res.status(404).json({ message: 'User not found' });
   }
 };
 
@@ -100,12 +110,23 @@ exports.getUserById = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { fullName, phone, address } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { fullName, phone, address, updatedAt: Date.now() },
-      { new: true }
-    ).select('-password');
-    res.json(user);
+    
+    try {
+      const user = await User.findByIdAndUpdate(
+        req.params.id,
+        { fullName, phone, address, updatedAt: Date.now() },
+        { new: true }
+      ).select('-password');
+      return res.json(user);
+    } catch (dbErr) {
+      // Try userStore fallback
+      const createdUser = userStore.getUser(req.params.id);
+      if (createdUser) {
+        userStore.updateUser(req.params.id, { fullName, phone, address, updatedAt: Date.now() });
+        return res.json(userStore.getUser(req.params.id));
+      }
+      throw dbErr;
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -114,8 +135,18 @@ exports.updateUser = async (req, res) => {
 // Delete user (admin only)
 exports.deleteUser = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: 'User deleted successfully' });
+    try {
+      await User.findByIdAndDelete(req.params.id);
+      return res.json({ message: 'User deleted successfully' });
+    } catch (dbErr) {
+      // Try userStore fallback
+      const createdUser = userStore.getUser(req.params.id);
+      if (createdUser) {
+        userStore.deleteUser(req.params.id);
+        return res.json({ message: 'User deleted successfully' });
+      }
+      throw dbErr;
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -125,9 +156,27 @@ exports.deleteUser = async (req, res) => {
 exports.changeUserStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { status, updatedAt: Date.now() },
+    
+    try {
+      const user = await User.findByIdAndUpdate(
+        req.params.id,
+        { status, updatedAt: Date.now() },
+        { new: true }
+      ).select('-password');
+      return res.json(user);
+    } catch (dbErr) {
+      // Try userStore fallback
+      const createdUser = userStore.getUser(req.params.id);
+      if (createdUser) {
+        userStore.updateUser(req.params.id, { status, updatedAt: Date.now() });
+        return res.json(userStore.getUser(req.params.id));
+      }
+      throw dbErr;
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
       { new: true }
     ).select('-password');
     res.json(user);
