@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { CREATED_USERS } = require('./authController');
 
 // Mock users for fallback when DB unavailable
 const MOCK_USERS = [
@@ -49,16 +50,23 @@ exports.getAllUsers = async (req, res) => {
 
     clearTimeout(timeoutId);
 
+    // Combine DB users with created users in memory
+    const createdUsersList = Object.values(CREATED_USERS);
+    const allUsers = [...(users || []), ...createdUsersList];
+
     // Cache the result
-    usersCache = users || [];
+    usersCache = allUsers;
     usersCacheTime = Date.now();
 
-    res.json(users || []);
+    res.json(allUsers);
   } catch (error) {
-    // Return mock users on timeout or DB error - instant fallback
-    usersCache = MOCK_USERS;
+    // On DB error, return created users + mock users
+    const createdUsersList = Object.values(CREATED_USERS);
+    const allUsers = [...createdUsersList, ...MOCK_USERS];
+    
+    usersCache = allUsers;
     usersCacheTime = Date.now();
-    res.json(MOCK_USERS);
+    res.json(allUsers);
   }
 };
 

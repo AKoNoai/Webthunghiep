@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-do-not-use-in-production';
 
+// In-memory store for users created during session (persists on this instance)
+const CREATED_USERS = {};
+
 // Register
 exports.register = async (req, res) => {
   try {
@@ -49,6 +52,17 @@ exports.register = async (req, res) => {
         phone,
         role: 'user'
       };
+      
+      // Store in memory for this session
+      CREATED_USERS[user._id] = {
+        _id: user._id,
+        fullName,
+        email,
+        phone,
+        status: 'active',
+        role: 'user',
+        createdAt: new Date(),
+      };
     }
 
     // Generate token
@@ -73,6 +87,9 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: 'Registration failed. Please try again.' });
   }
 };
+
+// Export CREATED_USERS for use in userController
+exports.CREATED_USERS = CREATED_USERS;
 
 // Login
 exports.login = async (req, res) => {
