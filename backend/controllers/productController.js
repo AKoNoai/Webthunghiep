@@ -2,12 +2,12 @@ const Product = require('../models/Product');
 
 // Mock data for fallback when DB is unavailable
 const MOCK_PRODUCTS = [
-  { _id: '1', name: 'Laptop Pro', description: 'High-performance laptop', price: 1299, discountPrice: 999, category: 'electronics', image: 'https://via.placeholder.com/300?text=Laptop', stock: 10, sku: 'LAPTOP-001', status: 'active' },
-  { _id: '2', name: 'Wireless Mouse', description: 'Ergonomic wireless mouse', price: 49, discountPrice: 29, category: 'electronics', image: 'https://via.placeholder.com/300?text=Mouse', stock: 50, sku: 'MOUSE-001', status: 'active' },
-  { _id: '3', name: 'USB-C Cable', description: 'Fast charging USB-C cable', price: 19, category: 'electronics', image: 'https://via.placeholder.com/300?text=Cable', stock: 100, sku: 'USB-001', status: 'active' },
-  { _id: '4', name: 'Mechanical Keyboard', description: 'RGB mechanical keyboard', price: 149, discountPrice: 99, category: 'electronics', image: 'https://via.placeholder.com/300?text=Keyboard', stock: 20, sku: 'KB-001', status: 'active' },
-  { _id: '5', name: '4K Monitor', description: '27-inch 4K monitor', price: 499, discountPrice: 399, category: 'electronics', image: 'https://via.placeholder.com/300?text=Monitor', stock: 8, sku: 'MON-001', status: 'active' },
-  { _id: '6', name: 'Gaming Headset', description: 'Wireless gaming headset', price: 129, discountPrice: 79, category: 'electronics', image: 'https://via.placeholder.com/300?text=Headset', stock: 30, sku: 'HS-001', status: 'active' }
+  { _id: '1', name: 'Laptop Pro', description: 'High-performance laptop', price: 1299, discountPrice: 999, category: 'electronics', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=300&fit=crop', stock: 10, sku: 'LAPTOP-001', status: 'active' },
+  { _id: '2', name: 'Wireless Mouse', description: 'Ergonomic wireless mouse', price: 49, discountPrice: 29, category: 'electronics', image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=300&h=300&fit=crop', stock: 50, sku: 'MOUSE-001', status: 'active' },
+  { _id: '3', name: 'USB-C Cable', description: 'Fast charging USB-C cable', price: 19, category: 'electronics', image: 'https://images.unsplash.com/photo-1525966222134-fcebfc4d00b0?w=300&h=300&fit=crop', stock: 100, sku: 'USB-001', status: 'active' },
+  { _id: '4', name: 'Mechanical Keyboard', description: 'RGB mechanical keyboard', price: 149, discountPrice: 99, category: 'electronics', image: 'https://images.unsplash.com/photo-1587829191301-32ca9fce8f5f?w=300&h=300&fit=crop', stock: 20, sku: 'KB-001', status: 'active' },
+  { _id: '5', name: '4K Monitor', description: '27-inch 4K monitor', price: 499, discountPrice: 399, category: 'electronics', image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&h=300&fit=crop', stock: 8, sku: 'MON-001', status: 'active' },
+  { _id: '6', name: 'Gaming Headset', description: 'Wireless gaming headset', price: 129, discountPrice: 79, category: 'electronics', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop', stock: 30, sku: 'HS-001', status: 'active' }
 ];
 
 // Get all products

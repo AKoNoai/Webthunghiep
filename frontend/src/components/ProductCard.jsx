@@ -12,11 +12,16 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="group bg-white/90 border border-slate-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-      <img 
-        src={product.image || 'https://via.placeholder.com/300'} 
-        alt={product.name}
-        className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
-      />
+      <div className="w-full h-52 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center overflow-hidden">
+        <img 
+          src={product.image} 
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.target.style.display = 'none';
+          }}
+        />
+      </div>
       <div className="p-4">
         <h3 className="text-lg font-bold truncate text-slate-900">{product.name}</h3>
         <p className="text-slate-600 text-sm mb-2 line-clamp-2">{product.description}</p>
