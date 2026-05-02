@@ -101,9 +101,15 @@ const bootstrap = async () => {
   startServer(DEFAULT_PORT);
 };
 
-bootstrap().catch((error) => {
-  console.error('Failed to bootstrap server:', error.message);
-  process.exit(1);
-});
+// Only run bootstrap (which starts a listening server) when this file is
+// executed directly (e.g. `node server.js`). When imported by Vercel's
+// serverless runtime, `require.main !== module` and we must NOT call
+// `app.listen()` — Vercel will call the exported app as a function.
+if (require.main === module) {
+  bootstrap().catch((error) => {
+    console.error('Failed to bootstrap server:', error.message);
+    process.exit(1);
+  });
+}
 
 module.exports = app;
