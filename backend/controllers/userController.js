@@ -177,10 +177,3 @@ exports.changeUserStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-      { new: true }
-    ).select('-password');
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
