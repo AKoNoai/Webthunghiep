@@ -58,7 +58,24 @@ const ensureDefaultAdmin = async () => {
 };
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: [
+    'https://webthunghiep.vercel.app',        // Frontend
+    'https://webthunghiepadmin.vercel.app',   // Admin
+    'http://localhost:5173',                  // Local frontend dev
+    'http://localhost:5174',                  // Local admin dev
+    'http://localhost:3000',                  // Local fallback
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
